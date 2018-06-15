@@ -28,56 +28,45 @@ import sys
 from bithumb import *
 import pprint
 
-
-api_key = "d11fd190a7154491ad82cfc30fc4acb1";
-api_secret = "731d60e30a7b40d1b12ab67d7f9284d2";
-
-api = BitHumb(api_key, api_secret);
-
 rgParams = {
 	"order_currency" : "BTC",
-	"payment_currency" : "ETH"
-};
+	"payment_currency" : "KRW"
+}
 
 
-#
-# Public API
-#
-# /public/ticker
-# /public/recent_ticker
-# /public/orderbook
-# /public/recent_transactions
-# z这个接口有问题啊 
-# print("Bithumb Public API URI('/public/ticker/ALL') Request...");
-# result = api.xcoinApiCall("/public/ticker/ALL", rgParams);
-# print("- Status Code: " + result["status"]);
-# print("- Opening Price: " + result["data"]["opening_price"]);
-# print("- Closing Price: " + result["data"]["closing_price"]);
-# print("- Sell Price: " + result["data"]["sell_price"]);
-# print("- Buy Price: " + result["data"]["buy_price"]);
-# print("");
-print(api.xcoinApiCall("/info/recent_ticker", rgParams))
+api_key = "d11fd190a7154491ad82cfc30fc4acb1"
+api_secret = "731d60e30a7b40d1b12ab67d7f9284d2"
 
-print(api.xcoinApiCall("/info/orderbook", rgParams))
+api = XCoinAPI(api_key, api_secret)
 
-print(api.xcoinApiCall("/info/recent_transactions", rgParams))
+# print(api.get_public_ticker())
 
-#
-# Private API
-#
-# endpoint => parameters
-# /info/current
-# /info/account
-# /info/balance
-# /info/wallet_address
+# print(api.get_public_orderbook(params={'group_orders':1, 'count':3}))
 
-print("Bithumb Private API URI('/info/account') Request...");
-result = api.xcoinApiCall("/info/account", rgParams);
-print("- Status Code: " + result["status"]);
-print("- Created: " + result["data"]["created"]);
-print("- Account ID: " + result["data"]["account_id"]);
-print("- Trade Fee: " + result["data"]["trade_fee"]);
-print("- Balance: " + result["data"]["balance"]);
+# print(api.get_public_orderbook())
 
+# print(api.get_transaction_history())
 
-sys.exit(0);
+# print(api.get_account_info("BTC"))
+
+# print(api.get_account_wallet_address())
+
+# print(api.get_account_balance())
+
+# print(api.get_account_ticker())
+
+# print(api.get_account_orders(1417160401000))
+
+# print(api.get_account_transactions(1, 0))
+
+# print(api.get_trade_place(0.001, 1000, "ask"))
+# 参数出错
+# print(api.get_order_detail("55555", "ask"))
+# 参数出错
+# print(api.get_order_detail("45691254895544", "ask"))
+
+# print(api.get_trade_krw_deposit())
+
+# print(api.get_trade_buy(0.001))
+
+# print(api.get_trade_sell(0.001))
