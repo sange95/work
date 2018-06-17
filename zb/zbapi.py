@@ -57,8 +57,9 @@ class Client_Zb():
         #print(signature)
         params['sign'] = str(signature)
         params['reqTime'] = int(time.time() * 1000)
-        #print(params)
+        print(params)
         resp = self.sessn.request(method,BASE_API_PRIVATE+path,headers=DEFAULT_HEADERS,data=None,params=params,proxies=proxies)
+        print(resp.content)
         data = json.loads(resp.content)
         return data
 
@@ -83,7 +84,7 @@ class Client_Zb():
         data = json.loads(resp.text)
         temp = {'asks':data['asks'][::-1],'bids':data['bids']}
         return temp
-
+    # 待修改
     def balance(self):
         params = {'method':'getAccountInfo'}
         result = self.signedRequest(method="GET",path ='/getAccountInfo',params=params)
@@ -108,7 +109,7 @@ class Client_Zb():
             symbol = symbol.replace('usd','usdt')	
         params = {'method':'order'} 
         order_type,side = trade_type.split('_')
-        params = {'currency':symbol,'price':price,'amount':amount}
+        params = {'currency':symbol,'price':price,'amount':amount, 'method': 'order'}
         if order_type == 'limit':
             if side == 'buy':
                 params['tradeType'] = 1
@@ -116,7 +117,9 @@ class Client_Zb():
                 params['tradeType'] = 0
         else:
             print('下单错误！！！')
+        # params['method'] = "order"
         resp = self.signedRequest(method="GET",path ='/order',params=params)
+        print(resp['code'])
         if resp['code'] == 1000:
             return resp['id']
             self.order_list.append(resp['id'])
@@ -171,11 +174,184 @@ class Client_Zb():
         resp = self.signedRequest(method="GET",path='/getOrdersNew',params=params)
         return resp
 
-# apikey = ''
-# secretkey = ''
-# client = Client_Zb(apikey,secretkey)
-#print(client.ticker())
-#print(client.depth())
-# print(client.balance())
-#print(client.open_orders('eth_btc','buy'))
+    def get_market(self):
+        resp = requests.get(BASE_API_PUBLIC + '/markets')
+        return json.loads(resp.content)
+
+    def get_kline(self, symbol=None):
+
+        if symbol:
+            url = BASE_API_PUBLIC + '/kline?symbol=' + symbol
+            symbol = symbol.lower()
+            if 'usd' in symbol:
+                symbol = symbol.replace('usd', 'usdt')
+        else:
+            url = BASE_API_PUBLIC + '/kline'
+        print(url)
+        resp = requests.get(url)
+        print(resp.content)
+        return json.loads(resp.content)
+
+
+    def get_trades(self, markets=None):
+
+        if markets:
+            url = BASE_API_PUBLIC + '/trades?market=' + markets
+            markets = markets.lower()
+            if 'usd' in markets:
+                markets = markets.replace('usd', 'usdt')
+        else:
+            url = BASE_API_PUBLIC + '/trades'
+        print(url)
+        resp = requests.get(url)
+        print(resp.content)
+        return json.loads(resp.content)
+
+    def get_order(self, id, symbol):
+
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'currency':symbol,'id':id,'method':'getOrder'}
+        resp = self.signedRequest(method="GET",path='/getOrder',params=params)
+        return resp
+
+    def get_user_address(self, symbol):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getUserAddress', 'currency': symbol}
+        resp = self.signedRequest(method="GET",path='/getUserAddress',params=params)
+        return resp
+
+    def get_withdraw_address(self, symbol):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getWithdrawAddress', 'currency': symbol}
+        resp = self.signedRequest(method="GET",path='/getWithdrawAddress',params=params)
+        return resp
+
+
+    def get_withdraw_record(self, symbol, pageIndex, pageSize=10):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getWithdrawRecord', 'currency': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize}
+        resp = self.signedRequest(method="GET",path='/getWithdrawRecord',params=params)
+        return resp
+
+    def get_charge_record(self, symbol, pageIndex, pageSize=10):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getChargeRecord', 'currency': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize}
+        resp = self.signedRequest(method="GET",path='/getChargeRecord',params=params)
+        return resp
+
+
+    def get_withdraw(self, symbol, account, fees, receiveAddr, safePwd, itransfer=False):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'withdraw', 'currency': symbol, 'account': account, 'fees': fees, 'receiveAddr': receiveAddr, 'safePwd': safePwd, 'itransfer': itransfer}
+        resp = self.signedRequest(method="GET",path='/withdraw',params=params)
+        return resp
+
+    def getLeverAssetsInfo(self):
+        
+        params = {'method':'getLeverAssetsInfo'}
+        resp = self.signedRequest(method="GET",path='/getLeverAssetsInfo',params=params)
+        return resp
+    
+    def getLeverBills(self, symbol, dataType, pageIndex, pageSize=10):  
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getLeverBills', 'coin': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize, 'dataType': dataType}
+        resp = self.signedRequest(method="GET",path='/getLeverBills',params=params)
+        return resp
+
+    def transferInLever(self, symbol, amount, marketName):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'transferInLever', 'currency': symbol, 'amount': amount, 'marketName': marketName}
+        resp = self.signedRequest(method="GET",path='/transferInLever',params=params)
+        return resp
+
+    def transferOutLever(self, symbol, amount, marketName):
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'transferOutLever', 'currency': symbol, 'amount': amount, 'marketName': marketName}
+        resp = self.signedRequest(method="GET",path='/transferOutLever',params=params)
+        return resp
+
+    def loan(self, symbol, amount, interestRateOfDay, repaymentDay, isLoop):
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'loan', 'currency': symbol, 'amount': amount, 'interestRateOfDay': interestRateOfDay, 'repaymentDay': repaymentDay,'isLoop': isLoop}
+        resp = self.signedRequest(method="GET",path='/loan',params=params)
+        return resp
+    
+    def cancelLoan(self, loanId):
+        params = {'method':'cancelLoan', 'loanId': loanId}
+        resp = self.signedRequest(method="GET",path='/cancelLoan',params=params)
+        return resp
+    
+    def getLoans(self, symbol, pageIndex, pageSize=10):  
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getLoans', 'coin': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize}
+        resp = self.signedRequest(method="GET",path='/getLoans',params=params)
+        return resp
+    
+    def getLoanRecords(self, symbol, status, loanId, marketName, pageIndex, pageSize=10):  
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getLoanRecords', 'coin': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize, 'status': status, 'loanId': loanId, 'marketName': marketName}
+        resp = self.signedRequest(method="GET",path='/getLoanRecords',params=params)
+        return resp
+    
+    def borrow(self, symbol, amount, interestRateOfDay, repaymentDay, isLoop, marketName):
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'borrow', 'coin': symbol, 'amount': amount, 'interestRateOfDay': interestRateOfDay, 'repaymentDay': repaymentDay,'isLoop': isLoop, 'marketName': marketName}
+        resp = self.signedRequest(method="GET",path='/borrow',params=params)
+        return resp
+    def repay(self, loanRecordId, repayAmount, repayType):
+
+        params = {'method':'repay', 'loanRecordId': loanRecordId, 'repayType': repayType, 'repayAmount': repayAmount}
+        resp = self.signedRequest(method="GET",path='/repay',params=params)
+        return resp
+    
+    def getRepayments(self, loanRecordId, pageIndex, pageSize=10):  
+        
+        params = {'method':'getRepayments', 'loanRecordId': loanRecordId, 'pageIndex': pageIndex, 'pageSize': pageSize}
+        resp = self.signedRequest(method="GET",path='/getRepayments',params=params)
+        return resp
+
+    def getFinanceRecords(self, symbol, pageIndex, pageSize=10):  
+        
+        symbol = symbol.lower()
+        if 'usd' in symbol:
+            symbol = symbol.replace('usd','usdt')
+        params = {'method':'getFinanceRecords', 'coin': symbol, 'pageIndex': pageIndex, 'pageSize': pageSize}
+        resp = self.signedRequest(method="GET",path='/getFinanceRecords',params=params)
+        return resp
 
